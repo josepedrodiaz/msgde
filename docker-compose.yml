@@ -1,0 +1,92 @@
+version: '3.2'
+services:
+    mysql:
+        image: mysql:${MYSQL_VERSION}
+        restart: always
+        env_file:
+            - ".env"
+        environment:
+            - MYSQL_DATABASE=${MYSQL_DATABASE}
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - MYSQL_USER=${MYSQL_USER}
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        volumes:
+            - ".mysql/data/db/mysql:/var/lib/mysql"
+            - "./etc/mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf"
+
+    myadmin:
+        image: phpmyadmin/phpmyadmin
+        environment:
+          - PMA_ARBITRARY=1
+          - PMA_HOST=mysql
+          - VIRTUAL_HOST=myadmin.moto.lab.mp.gba.gob.ar
+        depends_on:
+          - mysql
+    php:
+        build: ./php/
+        restart: always
+        working_dir: /var/www/html
+        environment:
+          APP_ENV: local
+          CONTAINER_ROLE: app
+        volumes:
+            - "${BACKEND_APP_PATH}:/var/www/html"
+            - ./php/php.ini-development:/usr/local/etc/php/php.ini
+        ports:
+            - 8307:3306
+        depends_on:
+            - mysql
+    c9:
+        build: ./c9/
+        volumes:
+          - ./src:/workspace
+        environment:
+          - C9_EXTRA='--auth user:password'
+          - VIRTUAL_HOST=c9.moto.lab.mp.gba.gob.ar
+
+    scheduler:
+        build: ./php/
+        restart: always
+        container_name: laravel-scheduler
+        depends_on:
+            - php
+        volumes:
+            - "${BACKEND_APP_PATH}:/var/www/html"
+        environment:
+            APP_ENV: local
+            CONTAINER_ROLE: scheduler
+    queue:
+        build: ./php/
+        restart: always
+        container_name: laravel-queue
+        depends_on:
+            - php
+        volumes:
+            - "${BACKEND_APP_PATH}:/var/www/html"
+        environment:
+            - APP_ENV=local
+            - CONTAINER_ROLE=queue
+
+    backend:
+        image: nginx:latest
+        volumes:
+            - ${BACKEND_APP_PATH}:/var/www/html
+            - ./etc/nginx/default.conf:/etc/nginx/conf.d/default.conf
+#            - ./backend/sites/default.conf:/etc/nginx/conf.d/default.conf
+        depends_on:
+            - php
+        environment:
+            - VIRTUAL_HOST=backend.moto.lab.mp.gba.gob.ar
+
+    frontend:
+        image: nginx:latest
+        environment:
+            - VIRTUAL_HOST=moto.lab.mp.gba.gob.ar
+        volumes:
+            - ${FRONTEND_APP_PATH}:/var/www/html
+            - ./frontend/sites/default.conf:/etc/nginx/conf.d/default.conf
+networks:
+  default:
+    ipam:
+     config:
+        - subnet: ${NETWORK}/24
