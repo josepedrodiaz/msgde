@@ -61,12 +61,12 @@ services:
     php:
         build: ./php/
         restart: always
-        working_dir: /var/www/html
+        working_dir: /var/www/php
         environment:
           APP_ENV: local
           CONTAINER_ROLE: app
         volumes:
-            - "${BACKEND_APP_PATH}:/var/www/html"
+            - "${BACKEND_APP_PATH}:/var/www/php"
             - ./php/php.ini-development:/usr/local/etc/php/php.ini
         ports:
             - 8307:3306
