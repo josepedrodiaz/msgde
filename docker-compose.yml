@@ -41,7 +41,7 @@ services:
         volumes:
           - ./src:/workspace
         environment:
-          - C9_EXTRA='--auth user:password'
+          - C9_EXTRA='--auth test:Motorola2020'
           - VIRTUAL_HOST=c9.moto.lab.mp.gba.gob.ar
 
     scheduler:
