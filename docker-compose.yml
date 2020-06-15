@@ -1,6 +1,6 @@
 version: '3.2'
 services:
-    reverse:
+    reverse_backend:
         image: nginx:latest
         volumes:
           - ./src/msgde:/var/www/msgde
