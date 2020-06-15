@@ -71,7 +71,7 @@ services:
         image: nginx:latest
         volumes:
             - ${BACKEND_APP_PATH}:/var/www/html
-            - ./etc/nginx/default.conf:/etc/nginx/conf.d/default.conf
+#           - ./etc/nginx/default.conf:/etc/nginx/conf.d/default.conf
 #            - ./backend/sites/default.conf:/etc/nginx/conf.d/default.conf
         depends_on:
             - php
