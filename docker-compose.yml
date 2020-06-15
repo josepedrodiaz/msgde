@@ -11,7 +11,28 @@ services:
         working_dir: /var/www
         environment:
           - VIRTUAL_HOST=backend.moto.lab.mp.gba.gob.ar, msgde.moto.lab.mp.gba.gob.ar
-          
+    
+    backend:
+        build: ./php/
+        restart: always
+        working_dir: /var/www/php
+        volumes:
+          - ./src/tadpba-backend:/var/www/php
+          - ./php/php.ini-development:/usr/local/etc/php/php.ini
+        depends_on:
+          - mysql
+
+    msgde:
+        build: ./php/
+        working_dir: /var/www/msgde
+        volumes:
+            - ./src/msgde:/var/www/msgde
+            - ./php/php.ini-development:/usr/local/etc/php/php.ini
+        depends_on:
+            - php
+        environment:
+            - VIRTUAL_HOST=msgde.moto.lab.mp.gba.gob.ar
+            
     mysql:
         image: mysql:${MYSQL_VERSION}
         restart: always
@@ -24,7 +45,9 @@ services:
             - MYSQL_PASSWORD=${MYSQL_PASSWORD}
         volumes:
             - ".mysql/data/db/mysql:/var/lib/mysql"
-            - "./etc/mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf"
+            - "./etc/mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf"           
+   
+    
 
     myadmin:
         image: phpmyadmin/phpmyadmin
@@ -34,6 +57,7 @@ services:
           - VIRTUAL_HOST=myadmin.moto.lab.mp.gba.gob.ar
         depends_on:
           - mysql
+          
     php:
         build: ./php/
         restart: always
@@ -48,6 +72,7 @@ services:
             - 8307:3306
         depends_on:
             - mysql
+            
     c9:
         build: ./c9/
         volumes:
@@ -67,6 +92,7 @@ services:
         environment:
             APP_ENV: local
             CONTAINER_ROLE: scheduler
+            
     queue:
         build: ./php/
         restart: always
@@ -78,27 +104,7 @@ services:
         environment:
             - APP_ENV=local
             - CONTAINER_ROLE=queue
-
-    backend:
-        build: ./php/
-        restart: always
-        working_dir: /var/www/php
-        volumes:
-          - ./src/tadpba-backend:/var/www/php
-          - ./php/php.ini-development:/usr/local/etc/php/php.ini
-        depends_on:
-          - mysql
-    
-    msgde:
-        build: ./php/
-        working_dir: /var/www/msgde
-        volumes:
-            - ./src/msgde:/var/www/msgde
-            - ./php/php.ini-development:/usr/local/etc/php/php.ini
-        depends_on:
-            - php
-        environment:
-            - VIRTUAL_HOST=msgde.moto.lab.mp.gba.gob.ar
+            
     frontend:
         image: nginx:latest
         environment:
